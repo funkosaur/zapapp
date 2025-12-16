@@ -171,8 +171,24 @@ const NewSighting = () => {
       <div className="form-container">
         <h1>Record New Sighting</h1>
 
-        {error && <div className="alert alert-error">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
+        {error && (
+          <div
+            className="alert alert-error"
+            role="alert"
+            aria-live="assertive"
+          >
+            {error}
+          </div>
+        )}
+        {success && (
+          <div
+            className="alert alert-success"
+            role="status"
+            aria-live="polite"
+          >
+            {success}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {/* GPS Coordinates */}
@@ -189,6 +205,7 @@ const NewSighting = () => {
                   value={formData.latitude}
                   onChange={handleInputChange}
                   required
+                  aria-required="true"
                   disabled={gpsLoading}
                 />
               </div>
@@ -203,6 +220,7 @@ const NewSighting = () => {
                   value={formData.longitude}
                   onChange={handleInputChange}
                   required
+                  aria-required="true"
                   disabled={gpsLoading}
                 />
               </div>
@@ -213,6 +231,8 @@ const NewSighting = () => {
               onClick={getLocation}
               className="btn-secondary"
               disabled={gpsLoading}
+              aria-label="Refresh GPS coordinates"
+              aria-busy={gpsLoading}
             >
               {gpsLoading ? 'Getting location...' : 'Refresh GPS'}
             </button>
@@ -224,11 +244,12 @@ const NewSighting = () => {
             <div className="photo-capture">
               {preview ? (
                 <div className="preview-container">
-                  <img src={preview} alt="Preview" className="image-preview" />
+                  <img src={preview} alt="Captured pangolin" className="image-preview" />
                   <button
                     type="button"
                     onClick={() => fileInputRef.current.click()}
                     className="btn-change-photo"
+                    aria-label="Change captured photo"
                   >
                     Change Photo
                   </button>
@@ -238,8 +259,9 @@ const NewSighting = () => {
                   type="button"
                   onClick={() => fileInputRef.current.click()}
                   className="btn-capture"
+                  aria-label="Open camera to take pangolin photo"
                 >
-                  📷 Take Photo
+                  Take Photo
                 </button>
               )}
               <input
@@ -249,46 +271,57 @@ const NewSighting = () => {
                 capture="environment"
                 onChange={handleImageCapture}
                 style={{ display: 'none' }}
+                aria-label="Capture pangolin photo"
+                required
+                aria-required="true"
               />
             </div>
           </div>
 
           {/* Status */}
           <div className="form-section">
-            <h3>Pangolin Status *</h3>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="status"
-                  value="alive"
-                  checked={formData.status === 'alive'}
-                  onChange={handleInputChange}
-                />
-                <span className="radio-text">Alive</span>
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="status"
-                  value="dead"
-                  checked={formData.status === 'dead'}
-                  onChange={handleInputChange}
-                />
-                <span className="radio-text">Dead</span>
-              </label>
-            </div>
+            <fieldset>
+              <legend>Pangolin Status *</legend>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="status"
+                    value="alive"
+                    checked={formData.status === 'alive'}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <span className="radio-text">Alive</span>
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    name="status"
+                    value="dead"
+                    checked={formData.status === 'dead'}
+                    onChange={handleInputChange}
+                    required
+                  />
+                  <span className="radio-text">Dead</span>
+                </label>
+              </div>
+            </fieldset>
           </div>
 
           {/* Mortality Type (only if dead) */}
           {formData.status === 'dead' && (
             <div className="form-section">
-              <h3>Cause of Death *</h3>
+              <label htmlFor="mortality_type">
+                <h3>Cause of Death *</h3>
+              </label>
               <select
+                id="mortality_type"
                 name="mortality_type"
                 value={formData.mortality_type}
                 onChange={handleInputChange}
                 required
+                aria-required="true"
                 className="form-select"
               >
                 <option value="">Select cause...</option>
@@ -302,8 +335,11 @@ const NewSighting = () => {
 
           {/* Notes */}
           <div className="form-section">
-            <h3>Additional Notes</h3>
+            <label htmlFor="notes">
+              <h3>Additional Notes</h3>
+            </label>
             <textarea
+              id="notes"
               name="notes"
               value={formData.notes}
               onChange={handleInputChange}
@@ -327,8 +363,16 @@ const NewSighting = () => {
               type="submit"
               className="btn-submit"
               disabled={loading}
+              aria-busy={loading}
             >
-              {loading ? 'Saving...' : 'Save Sighting'}
+              {loading ? (
+                <>
+                  <span className="sr-only">Saving sighting, please wait</span>
+                  <span aria-hidden="true">Saving...</span>
+                </>
+              ) : (
+                'Save Sighting'
+              )}
             </button>
           </div>
         </form>

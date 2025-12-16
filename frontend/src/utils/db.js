@@ -1,21 +1,31 @@
 import { openDB } from 'idb';
 
 const DB_NAME = 'zapapp-db';
-const DB_VERSION = 1;
-const STORE_NAME = 'pending-sightings';
+const DB_VERSION = 2;
+const PENDING_STORE = 'pending-sightings';
+const CACHE_STORE = 'cached-sightings';
 
 /**
  * Initialize IndexedDB database for offline storage
  */
 export const initDB = async () => {
   return openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, {
+    upgrade(db, oldVersion) {
+      // Create pending sightings store
+      if (!db.objectStoreNames.contains(PENDING_STORE)) {
+        const pendingStore = db.createObjectStore(PENDING_STORE, {
           keyPath: 'id',
           autoIncrement: true
         });
-        store.createIndex('timestamp', 'timestamp', { unique: false });
+        pendingStore.createIndex('timestamp', 'timestamp', { unique: false });
+      }
+
+      // Create cached sightings store (v2)
+      if (!db.objectStoreNames.contains(CACHE_STORE)) {
+        const cacheStore = db.createObjectStore(CACHE_STORE, {
+          keyPath: 'id'
+        });
+        cacheStore.createIndex('created_at', 'created_at', { unique: false });
       }
     },
   });
@@ -27,8 +37,8 @@ export const initDB = async () => {
  */
 export const savePendingSighting = async (sighting) => {
   const db = await initDB();
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
+  const tx = db.transaction(PENDING_STORE, 'readwrite');
+  const store = tx.objectStore(PENDING_STORE);
 
   await store.add({
     ...sighting,
@@ -45,8 +55,8 @@ export const savePendingSighting = async (sighting) => {
  */
 export const getPendingSightings = async () => {
   const db = await initDB();
-  const tx = db.transaction(STORE_NAME, 'readonly');
-  const store = tx.objectStore(STORE_NAME);
+  const tx = db.transaction(PENDING_STORE, 'readonly');
+  const store = tx.objectStore(PENDING_STORE);
 
   return store.getAll();
 };
@@ -57,8 +67,8 @@ export const getPendingSightings = async () => {
  */
 export const deletePendingSighting = async (id) => {
   const db = await initDB();
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
+  const tx = db.transaction(PENDING_STORE, 'readwrite');
+  const store = tx.objectStore(PENDING_STORE);
 
   await store.delete(id);
   await tx.done;
@@ -69,9 +79,50 @@ export const deletePendingSighting = async (id) => {
  */
 export const clearPendingSightings = async () => {
   const db = await initDB();
-  const tx = db.transaction(STORE_NAME, 'readwrite');
-  const store = tx.objectStore(STORE_NAME);
+  const tx = db.transaction(PENDING_STORE, 'readwrite');
+  const store = tx.objectStore(PENDING_STORE);
 
   await store.clear();
   await tx.done;
+};
+
+// ============================================
+// Cached Sightings Functions (for offline browsing)
+// ============================================
+
+/**
+ * Cache sightings from API for offline viewing
+ * @param {Array} sightings - Array of sightings to cache
+ */
+export const cacheSightings = async (sightings) => {
+  const db = await initDB();
+  const tx = db.transaction(CACHE_STORE, 'readwrite');
+  const store = tx.objectStore(CACHE_STORE);
+
+  // Clear old cache
+  await store.clear();
+
+  // Add new sightings
+  for (const sighting of sightings) {
+    await store.put(sighting);
+  }
+
+  await tx.done;
+};
+
+/**
+ * Get cached sightings from IndexedDB
+ * @returns {Array} Array of cached sightings
+ */
+export const getCachedSightings = async () => {
+  const db = await initDB();
+  const tx = db.transaction(CACHE_STORE, 'readonly');
+  const store = tx.objectStore(CACHE_STORE);
+
+  const sightings = await store.getAll();
+
+  // Sort by created_at descending (newest first)
+  return sightings.sort((a, b) =>
+    new Date(b.created_at) - new Date(a.created_at)
+  );
 };

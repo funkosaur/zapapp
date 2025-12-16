@@ -114,7 +114,7 @@
 .btn-capture {
   background-color: #4CAF50;
   color: white;
-  padding: 60px 40px;
+  padding: 10px 20px;
   border: 2px dashed #81c784;
   border-radius: 8px;
   cursor: pointer;
@@ -263,6 +263,34 @@
 .btn-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Fieldset styles for accessibility */
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+fieldset legend {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #555;
+  font-size: 1.1em;
+  font-weight: 600;
 }
 
 @media (max-width: 480px) {

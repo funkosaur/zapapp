@@ -61,6 +61,21 @@ registerRoute(
   })
 );
 
+// Don't cache external images (like those from mb1868.brighton.domains)
+// This prevents caching of "No Image" placeholders and ensures fresh images when online
+registerRoute(
+  ({ url }) => url.origin !== self.location.origin && (url.pathname.endsWith('.png') || url.pathname.endsWith('.jpg') || url.pathname.endsWith('.jpeg')),
+  new StaleWhileRevalidate({
+    cacheName: 'external-images',
+    plugins: [
+      new ExpirationPlugin({ 
+        maxEntries: 100,
+        maxAgeSeconds: 24 * 60 * 60, // 24 hours
+      }),
+    ],
+  })
+);
+
 // This allows the web app to trigger skipWaiting via
 // registration.waiting.postMessage({type: 'SKIP_WAITING'})
 self.addEventListener('message', (event) => {

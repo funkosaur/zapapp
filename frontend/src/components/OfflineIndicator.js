@@ -25,8 +25,12 @@ const OfflineIndicator = () => {
   }
 
   return (
-    <div className="offline-indicator">
-      <span className="offline-icon">⚠️</span>
+    <div
+      className="offline-indicator"
+      role="alert"
+      aria-live="assertive"
+    >
+      <span className="offline-icon" aria-hidden="true">⚠️</span>
       <span className="offline-text">You are offline. Data will be saved locally.</span>
     </div>
   );

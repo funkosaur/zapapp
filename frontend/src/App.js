@@ -51,11 +51,16 @@ function App() {
   return (
     <Router basename="/zapapp">
       <div className="App">
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <OfflineIndicator />
-        <Routes>
-          <Route path="/" element={<SightingsList />} />
-          <Route path="/new" element={<NewSighting />} />
-        </Routes>
+        <main id="main-content">
+          <Routes>
+            <Route path="/" element={<SightingsList />} />
+            <Route path="/new" element={<NewSighting />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
