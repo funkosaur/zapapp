@@ -92,6 +92,7 @@ export const clearPendingSightings = async () => {
 
 /**
  * Cache sightings from API for offline viewing
+ * Relies on service worker to cache images separately
  * @param {Array} sightings - Array of sightings to cache
  */
 export const cacheSightings = async (sightings) => {
@@ -102,7 +103,7 @@ export const cacheSightings = async (sightings) => {
   // Clear old cache
   await store.clear();
 
-  // Add new sightings
+  // Add new sightings (service worker will cache images when they load)
   for (const sighting of sightings) {
     await store.put(sighting);
   }

@@ -24,7 +24,11 @@ const SightingsList = () => {
       setImageKey(Date.now()); // Force images to reload when coming back online
       loadSightings();
     };
-    const handleOffline = () => setIsOffline(true);
+    const handleOffline = () => {
+      setIsOffline(true);
+      // When going offline, immediately load cached data
+      loadSightings();
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -33,7 +37,8 @@ const SightingsList = () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array is intentional - only run once on mount
 
   const loadSightings = async () => {
     try {
@@ -134,7 +139,11 @@ const SightingsList = () => {
         {(isPending && sighting.image) || (!isPending && sighting.image_path) ? (
           <img
             key={`${isPending ? `pending-${sighting.id}` : sighting.id}-${imageKey}`}
-            src={isPending ? (typeof sighting.image === 'string' ? sighting.image : URL.createObjectURL(sighting.image)) : `https://mb1868.brighton.domains/restServ/zapapp/${sighting.image_path}?v=${imageKey}`}
+            src={
+              isPending 
+                ? (typeof sighting.image === 'string' ? sighting.image : URL.createObjectURL(sighting.image))
+                : `https://mb1868.brighton.domains/restServ/zapapp/${sighting.image_path}${isOffline ? '' : `?v=${imageKey}`}`
+            }
             alt={`Pangolin sighting - ${sighting.status} at coordinates ${parseFloat(sighting.latitude).toFixed(6)}, ${parseFloat(sighting.longitude).toFixed(6)}${sighting.status === 'dead' && sighting.mortality_type ? `, cause: ${getMortalityLabel(sighting.mortality_type)}` : ''}`}
             onError={(e) => {
               // Only set placeholder if we haven't already, to prevent loops
